@@ -1,5 +1,7 @@
 # rescuetime-summary
 
+Print rescuetime summary of the previous weekday in avochoc format.
+
 ### Quickstart
 
 1. Create rescuetime API key at https://www.rescuetime.com/anapi/manage
@@ -24,7 +26,7 @@ Add`export RESCUE_TIME_API_KEY=[your api key]` to ~/.zshrc or ~/.bashrc (Windows
 
 
 
-Usage examples: 
+### Usage examples: 
 ```
   rescuetime-summary
 ```
