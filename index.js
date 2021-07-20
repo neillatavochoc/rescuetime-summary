@@ -27,7 +27,7 @@ const getData = async (date = moment().subtract(1, 'd').format('YYYY-MM-DD')) =>
 	}
 	const { data } = await axios.get(RESCUE_TIME_URL, { params }).catch(({response}) => {
 		if (response.status === 400) {
-			console.error('Unauthorized response: Please set RESCUE_TIME_API_KEY (see https://www.rescuetime.com/anapi/manage)');
+			console.error('Unauthorized response: Please set RESCUE_TIME_API_KEY (see https://github.com/neillatavochoc/rescuetime-summary)');
 		} else {
 			console.error(`Rescuetime API error: ${response.statusText}`);
 		}
