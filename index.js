@@ -2,6 +2,10 @@ const _ = require('lodash');
 const moment = require('moment');
 const axios = require('axios');
 const { Command } = require('commander');
+const { logger } = require('./logger.js');
+const { styled } = require('@neilllandman/library');
+
+logger.setLogger(styled);
 
 const RESCUE_TIME_URL = 'https://www.rescuetime.com/anapi/daily_summary_feed';
 
@@ -25,19 +29,19 @@ const getData = async (date, key) => {
 	if(moment(date, moment.ISO_8601).isValid()) {
 		params.date = moment(date).format('YYYY-MM-DD');
 	} else {
-		console.error(`Error: Invalid date`);
+		logger.error(`Error: Invalid date`);
 		return null;
 	}
 	if (!key) {
-		console.error('Error: api key is required');
+		logger.error('Error: api key is required');
 		return null;
 	}
 
 	const { data } = await axios.get(RESCUE_TIME_URL, { params }).catch(({response}) => {
 		if (response.status === 400) {
-			console.error('Unauthorized response: Please set RESCUE_TIME_API_KEY (see https://github.com/neillatavochoc/rescuetime-summary)');
+			logger.error('Unauthorized response: Please set RESCUE_TIME_API_KEY (see https://github.com/neillatavochoc/rescuetime-summary)');
 		} else {
-			console.error(`Rescuetime API error: ${response.statusText}`);
+			logger.error(`Rescuetime API error: ${response.statusText}`);
 		}
 		return { data: [] };
 	});
@@ -57,7 +61,7 @@ const cleanData = (data) => {
 					return;
 				}
 			}
-			results.push({ key, name: getNameFromKey(key), value: `${value}`.padStart(2) });
+			results.push({ key, name: getNameFromKey(key), value: `${value}`.padStart(4) });
 		}
 	});
 	return _.orderBy(results, ['value'], ['desc']);
@@ -76,15 +80,15 @@ const printFormatted = async (date, key) => {
 		return;
 	}
 	const results = cleanData(data);
-	console.log(bold(moment(data.date).format('ddd, MMM DD YYYY')));
-	console.log(`Today I logged ${bold(results.find(r => r.key === 'total_duration_formatted').value)}`);
-	console.log('Breakdown:');
+	logger.info(bold(moment(data.date).format('ddd, MMM DD YYYY')));
+	logger.log(`Today I logged ${bold(results.find(r => r.key === 'total_duration_formatted').value)}`);
+	logger.log('Breakdown:');
 	results.forEach(r => {
 		if (PERCENTAGES.includes(r.key)) {
-			console.log(`${bold(r.value)}${bold('%')} ${r.name}`);
+			logger.log(`${bold(r.value)}${bold('%')} ${r.name}`);
 		}
 	});
-	console.log(`Productivity Pulse: ${bold(results.find(r => r.key === 'productivity_pulse').value + '%')}`);
+	logger.log(`Productivity Pulse: ${bold(results.find(r => r.key === 'productivity_pulse').value + '%')}`);
 };
  
 module.exports = { printFormatted, getData };
