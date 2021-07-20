@@ -76,7 +76,7 @@ const printFormatted = async (date, key) => {
 		return;
 	}
 	const results = cleanData(data);
-	console.log(moment(data.date).format('ddd MMM DD YYYY'));
+	console.log(bold(moment(data.date).format('ddd, MMM DD YYYY')));
 	console.log(`Today I logged ${bold(results.find(r => r.key === 'total_duration_formatted').value)}`);
 	console.log('Breakdown:');
 	results.forEach(r => {
