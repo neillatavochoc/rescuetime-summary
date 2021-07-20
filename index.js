@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const moment = require('moment');
 const axios = require('axios');
+const { Command } = require('commander');
 
 const RESCUE_TIME_URL = 'https://www.rescuetime.com/anapi/daily_summary_feed';
 
@@ -19,12 +20,19 @@ const PERCENTAGES = [
   // 'total_duration_formatted',
 ];
 
-const getData = async (date = moment().subtract(1, 'd').format('YYYY-MM-DD')) => {
-	const key = process.env.RESCUE_TIME_API_KEY;
+const getData = async (date, key) => {
 	const params = { key };
-	if(moment(date).isValid()) {
+	if(moment(date, moment.ISO_8601).isValid()) {
 		params.date = moment(date).format('YYYY-MM-DD');
+	} else {
+		console.error(`Error: Invalid date`);
+		return null;
 	}
+	if (!key) {
+		console.error('Error: api key is required');
+		return null;
+	}
+
 	const { data } = await axios.get(RESCUE_TIME_URL, { params }).catch(({response}) => {
 		if (response.status === 400) {
 			console.error('Unauthorized response: Please set RESCUE_TIME_API_KEY (see https://github.com/neillatavochoc/rescuetime-summary)');
@@ -33,7 +41,7 @@ const getData = async (date = moment().subtract(1, 'd').format('YYYY-MM-DD')) =>
 		}
 		return { data: [] };
 	});
-	return data.filter((d) => d.date === date)[0];
+	return data.filter((d) => d.date === params.date)[0];
 };
 
 const getNameFromKey = (key) => key.replace(/(_percentage|_)/g, ' ').trim().replace(/\b./g, (c) => c.toUpperCase());
@@ -62,12 +70,13 @@ const bold = (str) => {
 	return `${escape}${boldCode}m${str}${base}`;
 };
 
-const printFormatted = async () => {
-	const data = await getData();
+const printFormatted = async (date, key) => {
+	const data = await getData(date, key);
 	if (!data) {
 		return;
 	}
 	const results = cleanData(data);
+	console.log(moment(data.date).format('ddd MMM DD YYYY'));
 	console.log(`Today I logged ${bold(results.find(r => r.key === 'total_duration_formatted').value)}`);
 	console.log('Breakdown:');
 	results.forEach(r => {

@@ -1,7 +1,7 @@
 {
   "name": "rescuetime-summary",
   "version": "1.0.0",
-	"bin": "rescuetime-summary.js",
+  "bin": "rescuetime-summary.js",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
+    "commander": "^8.0.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.1"
   }
