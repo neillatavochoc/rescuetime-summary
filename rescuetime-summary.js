@@ -17,7 +17,7 @@ if (date.day() === 1) {
   date.subtract(1, 'd');
 }
 
-program.usage('rescuetime-summary [options]')
+program.usage('[options]')
 .description('Print rescuetime summary of the previous week day in avochoc format')
 .option('-k, --key <string>', 'Rescuetime api key. Default is value of env RESCUE_TIME_API_KEY', process.env.RESCUE_TIME_API_KEY)
 .option('-d, --date <string>', 'Date for summary in moment recognized format.', date.format('YYYY-MM-DD'))

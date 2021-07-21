@@ -81,7 +81,7 @@ const printFormatted = async (date, key) => {
 	}
 	const results = cleanData(data);
 	logger.info(bold(moment(data.date).format('ddd, MMM DD YYYY')));
-	logger.log(`Today I logged ${bold(results.find(r => r.key === 'total_duration_formatted').value)}`);
+	logger.log(`Yesterday I logged ${bold(results.find(r => r.key === 'total_duration_formatted').value)}`);
 	logger.log('Breakdown:');
 	results.forEach(r => {
 		if (PERCENTAGES.includes(r.key)) {
