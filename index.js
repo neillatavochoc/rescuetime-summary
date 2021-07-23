@@ -5,9 +5,23 @@ const { Command } = require('commander');
 const { logger } = require('./logger.js');
 const { styled } = require('@neilllandman/library');
 
-logger.setLogger(styled);
+const OUTPUT_PIPED = !process.stdout.isTTY;
+
+if (OUTPUT_PIPED) {
+	logger.setLogger(console);
+} else {
+	logger.setLogger(styled);
+}
 
 const RESCUE_TIME_URL = 'https://www.rescuetime.com/anapi/daily_summary_feed';
+
+let debugEnabled = false;
+
+function debug(str) {
+	if (debugEnabled) {
+		logger.debug(str);
+	}
+}
 
 const PERCENTAGES = [
   'software_development_percentage',
@@ -23,6 +37,7 @@ const PERCENTAGES = [
   'news_percentage',
   // 'total_duration_formatted',
 ];
+
 
 const getData = async (date, key) => {
 	const params = { key };
@@ -61,37 +76,70 @@ const cleanData = (data) => {
 					return;
 				}
 			}
-			results.push({ key, name: getNameFromKey(key), value: `${value}`.padStart(4) });
+			results.push({ key, name: getNameFromKey(key), value: `${value}` });
 		}
 	});
 	return _.orderBy(results, ['value'], ['desc']);
 };
 
 const bold = (str) => {
+	if (OUTPUT_PIPED) {
+		return str;
+	}
+	return `*${str}*`;
 	const escape = '\u001b[';
 	const base = `${escape}0m`;
 	const boldCode = 1;
 	return `${escape}${boldCode}m${str}${base}`;
 };
 
-const printFormatted = async (date, key) => {
+let output = '';
+
+function write(str, level = 'log') {
+	logger[level](str);
+	output += `${str}\n`;
+}
+
+const printHeader = (date) => {
+	if (!OUTPUT_PIPED) {
+		const dateString = bold(moment(date).format('ddd, MMM DD YYYY'));
+		logger.info(dateString);
+		logger.log('-'.repeat(dateString.length));
+	}	
+}
+
+function copyToClipboard(data) {
+	try {
+		const p = require('child_process').spawn('xsel', ['--clipboard', '--input']);
+		p.stdin.write(data);
+		p.stdin.end();
+		debug('copied to clipboard');
+	} catch(e) { }
+}
+
+const printFormatted = async ({ date, key, debug, clipboard }) => {
+	debugEnabled = debug;
 	const data = await getData(date, key);
 	if (!data) {
+		if(!OUTPUT_PIPED) {
+			write(`No data found for ${date}`);
+		}
 		return;
 	}
 	const results = cleanData(data);
-	logger.info(bold(moment(data.date).format('ddd, MMM DD YYYY')));
-	logger.log(`Yesterday I logged ${bold(results.find(r => r.key === 'total_duration_formatted').value)}`);
-	logger.log('Breakdown:');
+	printHeader(date);
+	write(`Yesterday I logged ${bold(results.find(r => r.key === 'total_duration_formatted').value)}`);
+	write('Breakdown:');
 	results.forEach(r => {
 		if (PERCENTAGES.includes(r.key)) {
-			logger.log(`${bold(r.value)}${bold('%')} ${r.name}`);
+			write(`${bold(r.value + '%')} ${r.name}`);
 		}
 	});
-	logger.log(`Productivity Pulse: ${bold(results.find(r => r.key === 'productivity_pulse').value + '%')}`);
+	write(`Productivity Pulse: ${bold(results.find(r => r.key === 'productivity_pulse').value + '%')}`);
+	if (clipboard) {
+		copyToClipboard(output);
+	}
 };
- 
+
 module.exports = { printFormatted, getData };
-
-
 
