@@ -109,12 +109,40 @@ const printHeader = (date) => {
 }
 
 function copyToClipboard(data) {
+	// TODO: switch/case on process.platform
 	try {
+		// linux
 		const p = require('child_process').spawn('xsel', ['--clipboard', '--input']);
 		p.stdin.write(data);
 		p.stdin.end();
-		debug('copied to clipboard');
-	} catch(e) { }
+		debug('copied to clipboard (linux: xsel)');
+	} catch(e) {
+		// linux
+		try {
+			const p = require('child_process').spawn('xclip');
+			p.stdin.write(data);
+			p.stdin.end();
+			debug('copied to clipboard (linux: xclip)');
+		} catch(e) {
+			// macos
+			try {
+				const p = require('child_process').spawn('pbcopy');
+				p.stdin.write(data);
+				p.stdin.end();
+				debug('copied to clipboard (darwin: pbcopy)');
+			} catch(e) { 
+				// windows
+				try {
+					const p = require('child_process').spawn('clip');
+					p.stdin.write(data);
+					p.stdin.end();
+					debug('copied to clipboard (windows: clip)');
+				} catch(e) {
+					logger.error('could not copy to clipboard');
+				}
+			}
+		}
+	}
 }
 
 const printFormatted = async ({ date, key, debug, clipboard }) => {
