@@ -76,7 +76,7 @@ const cleanData = (data) => {
 					return;
 				}
 			}
-			results.push({ key, name: getNameFromKey(key), value: `${value}` });
+			results.push({ key, name: getNameFromKey(key), value });
 		}
 	});
 	return _.orderBy(results, ['value'], ['desc']);
@@ -113,9 +113,15 @@ function copyToClipboard(data) {
 	try {
 		// linux
 		const p = require('child_process').spawn('xsel', ['--clipboard', '--input']);
+		p.on('error', (err) => {
+			console.log('error!!!!!!!!');
+		});
+		p.on('spawn', () => {
+
 		p.stdin.write(data);
 		p.stdin.end();
 		debug('copied to clipboard (linux: xsel)');
+		});
 	} catch(e) {
 		// linux
 		try {
