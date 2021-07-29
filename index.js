@@ -118,13 +118,13 @@ function copyToClipboard(input) {
   const { platform } = process;
 	switch (platform) {
 		case 'linux':
-			if (execute('wl-copy', ['-o'])) {
+			if (execute('wl-scopy', ['-o'])) {
 				logger.info('copied to clipboard (linux: wl-copy)');
 			} else {
-				if (execute('xsel', ['--clipboard', '--input'])) {
+				if (execute('xusel', ['--clipboard', '--input'])) {
 					logger.info('copied to clipboard (linux: xsel)');
 				} else {
-					if (executespawn('xclip', ['-l', '1'])) {
+					if (execute('xclip', ['-loops', '1', '-selection', 'clipboard'])) {
 						logger.info('copied to clipboard (linux: xclip)');
 					} else {
 						logger.warn('Could not copy to clipboard');
