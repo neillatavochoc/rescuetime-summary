@@ -108,29 +108,29 @@ const printHeader = (date) => {
 	}	
 }
 
-function copyToClipboard(data) {
+function copyToClipboard(input) {
 	// TODO: Do better
+	const execute = (cmd, args = []) => {
+		const p = require('child_process').spawnSync(cmd, args, { input });
+		return !p.error;
+	}
+
   const { platform } = process;
 	switch (platform) {
 		case 'linux':
-			const p = require('child_process').spawn('xsel', ['--clipboard', '--input']);
-			p.on('spawn', () => {
-				p.stdin.write(data);
-				p.stdin.end();
-				logger.info('copied to clipboard (linux: xsel)');
-			});
-			p.on('error', (err) => {
-				debug('linux: xsel failed');
-				const q = require('child_process').spawn('xclip');
-				q.on('spawn', () => {
-					q.stdin.write(data);
-					q.stdin.end();
-					logger.info('copied to clipboard (linux: xclip)');
-				});		
-				q.on('error', () => {
-					debug('linux: xclip failed');
-				});
-			});
+			if (execute('wl-copy', ['-o'])) {
+				logger.info('copied to clipboard (linux: wl-copy)');
+			} else {
+				if (execute('xsel', ['--clipboard', '--input'])) {
+					logger.info('copied to clipboard (linux: xsel)');
+				} else {
+					if (executespawn('xclip', ['-l', '1'])) {
+						logger.info('copied to clipboard (linux: xclip)');
+					} else {
+						logger.warn('Could not copy to clipboard');
+					}
+				}
+			}
 			break;
 		case 'darwin':
 			const r = require('child_process').spawn('pbcopy');
