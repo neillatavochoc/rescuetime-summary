@@ -109,45 +109,54 @@ const printHeader = (date) => {
 }
 
 function copyToClipboard(data) {
-	// TODO: switch/case on process.platform
-	try {
-		// linux
-		const p = require('child_process').spawn('xsel', ['--clipboard', '--input']);
-		p.on('error', (err) => {
-			console.log('error!!!!!!!!');
-		});
-		p.on('spawn', () => {
-
-		p.stdin.write(data);
-		p.stdin.end();
-		debug('copied to clipboard (linux: xsel)');
-		});
-	} catch(e) {
-		// linux
-		try {
-			const p = require('child_process').spawn('xclip');
-			p.stdin.write(data);
-			p.stdin.end();
-			debug('copied to clipboard (linux: xclip)');
-		} catch(e) {
-			// macos
-			try {
-				const p = require('child_process').spawn('pbcopy');
+	// TODO: Do better
+  const { platform } = process;
+	switch (platform) {
+		case 'linux':
+			const p = require('child_process').spawn('xsel', ['--clipboard', '--input']);
+			p.on('spawn', () => {
 				p.stdin.write(data);
 				p.stdin.end();
-				debug('copied to clipboard (darwin: pbcopy)');
-			} catch(e) { 
-				// windows
-				try {
-					const p = require('child_process').spawn('clip');
-					p.stdin.write(data);
-					p.stdin.end();
-					debug('copied to clipboard (windows: clip)');
-				} catch(e) {
-					logger.error('could not copy to clipboard');
-				}
-			}
-		}
+				logger.info('copied to clipboard (linux: xsel)');
+			});
+			p.on('error', (err) => {
+				debug('linux: xsel failed');
+				const q = require('child_process').spawn('xclip');
+				q.on('spawn', () => {
+					q.stdin.write(data);
+					q.stdin.end();
+					logger.info('copied to clipboard (linux: xclip)');
+				});		
+				q.on('error', () => {
+					debug('linux: xclip failed');
+				});
+			});
+			break;
+		case 'darwin':
+			const r = require('child_process').spawn('pbcopy');
+			r.on('spawn', () => {
+				r.stdin.write(data);
+				r.stdin.end();
+				logger.info('copied to clipboard (darwin: pbcopy)');
+			});
+			r.on('error', () => {
+				debug('darwin: pbcopy failed');
+			});
+			break;
+		case 'windows':
+			const s = require('child_process').spawn('clip');
+			s.on('spawn', () => {
+				s.stdin.write(data);
+				s.stdin.end();
+				logger.info('copied to clipboard (windows: clip)');
+			});
+			s.on('error', () => {
+				debug('windows: clip failed');
+			});
+			break;
+		default:
+			debug(`unsupported platform ${platform}`);
+			break;
 	}
 }
 
