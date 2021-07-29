@@ -1,12 +1,12 @@
 {
   "name": "rescuetime-summary",
   "version": "1.1.0",
-  "bin": "rescuetime-summary.js",
+  "bin": "src/rescuetime-summary.js",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "prettier -c .",
-    "lint-fix": "prettier -w .",
+    "lint": "prettier -c index.js src/",
+    "lint-fix": "prettier -w index.js src/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

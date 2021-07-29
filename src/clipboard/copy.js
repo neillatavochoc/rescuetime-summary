@@ -19,10 +19,10 @@ function linuxCopy(input) {
   if (wlCopy(input)) {
     logger.info('copied to clipboard (linux: wl-copy)');
   } else {
-    if (execute('xusel', ['--clipboard', '--input'])) {
+    if (xSelCopy(input)) {
       logger.info('copied to clipboard (linux: xsel)');
     } else {
-      if (execute('xclip', ['-loops', '1', '-selection', 'clipboard'])) {
+      if (xClipCopy(input)) {
         logger.info('copied to clipboard (linux: xclip)');
       } else {
         logger.warn('Could not copy to clipboard');
@@ -30,6 +30,20 @@ function linuxCopy(input) {
     }
   }
 }
+
+function pbcopy(input) {
+  const r = require('child_process').spawn('pbcopy');
+  r.on('spawn', () => {
+    r.stdin.write(data);
+    r.stdin.end();
+    logger.info('copied to clipboard (darwin: pbcopy)');
+  });
+  r.on('error', () => {
+    debug('darwin: pbcopy failed');
+  });
+}
+
+function clipCopy() {}
 
 function copy(input) {
   // TODO: Do better
@@ -66,4 +80,4 @@ function copy(input) {
   }
 }
 
-module.exports = { copy };
+module.exports = copy;
