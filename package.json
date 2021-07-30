@@ -1,8 +1,9 @@
 {
   "name": "rescuetime-summary",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "bin": "src/rescuetime-summary.js",
   "description": "",
+  "repository": "https://github.com/neillatavochoc/rescuetime-summary",
   "main": "index.js",
   "scripts": {
     "lint": "prettier -c index.js src/",
