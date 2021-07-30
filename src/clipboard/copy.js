@@ -65,11 +65,11 @@ function copy(input) {
         logger.warn('could not copy to clipboard');
       }
       break;
-    case 'windows':
+    case 'win32':
       clipCopy(input);
       break;
     default:
-      debug(`unsupported platform ${platform}`);
+      logger.warn(`Could not copy to clipboard: unsupported platform ${platform}`);
       break;
   }
 }
