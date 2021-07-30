@@ -24,10 +24,10 @@ function pbcopy(input) {
   return executeSync('pbcopy', [], input);
 }
 
-function clipCopy() {
+function clipCopy(input) {
   const s = require('child_process').spawn('clip');
-  s.on('spawn', (foo) => {
-    s.stdin.end(data);
+  s.on('spawn', () => {
+    s.stdin.end(input);
     logger.info('copied to clipboard (windows: clip)');
   });
   s.on('error', () => {
