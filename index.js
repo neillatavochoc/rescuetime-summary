@@ -2,8 +2,9 @@ const _ = require('lodash');
 const moment = require('moment');
 const axios = require('axios');
 const { Command } = require('commander');
-const { logger } = require('./logger.js');
 const { styled } = require('@neilllandman/library');
+const { logger } = require('./src/logger.js');
+const { copy } = require('./src/clipboard');
 
 const OUTPUT_PIPED = !process.stdout.isTTY;
 
@@ -117,58 +118,6 @@ const printHeader = (date) => {
   }
 };
 
-function copyToClipboard(input) {
-  // TODO: Do better
-  const execute = (cmd, args = []) => {
-    const p = require('child_process').spawnSync(cmd, args, { input });
-    return !p.error;
-  };
-
-  const { platform } = process;
-  switch (platform) {
-    case 'linux':
-      if (execute('wl-scopy', ['-o'])) {
-        logger.info('copied to clipboard (linux: wl-copy)');
-      } else {
-        if (execute('xusel', ['--clipboard', '--input'])) {
-          logger.info('copied to clipboard (linux: xsel)');
-        } else {
-          if (execute('xclip', ['-loops', '1', '-selection', 'clipboard'])) {
-            logger.info('copied to clipboard (linux: xclip)');
-          } else {
-            logger.warn('Could not copy to clipboard');
-          }
-        }
-      }
-      break;
-    case 'darwin':
-      const r = require('child_process').spawn('pbcopy');
-      r.on('spawn', () => {
-        r.stdin.write(data);
-        r.stdin.end();
-        logger.info('copied to clipboard (darwin: pbcopy)');
-      });
-      r.on('error', () => {
-        debug('darwin: pbcopy failed');
-      });
-      break;
-    case 'windows':
-      const s = require('child_process').spawn('clip');
-      s.on('spawn', () => {
-        s.stdin.write(data);
-        s.stdin.end();
-        logger.info('copied to clipboard (windows: clip)');
-      });
-      s.on('error', () => {
-        debug('windows: clip failed');
-      });
-      break;
-    default:
-      debug(`unsupported platform ${platform}`);
-      break;
-  }
-}
-
 const printFormatted = async ({ date, key, debug, clipboard }) => {
   debugEnabled = debug;
   const data = await getData(date, key);
@@ -193,7 +142,7 @@ const printFormatted = async ({ date, key, debug, clipboard }) => {
     `Productivity Pulse: ${bold(results.find((r) => r.key === 'productivity_pulse').value + '%')}`
   );
   if (clipboard) {
-    copyToClipboard(output);
+    copy(output);
   }
 };
 

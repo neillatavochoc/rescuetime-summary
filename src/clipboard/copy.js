@@ -1,18 +1,38 @@
+const { exec, spawn, spawnSync } = require('child_process');
+const { logger } = require('../logger.js');
+
 const executeSync = (cmd, args = [], input) => {
-  const p = require('child_process').spawnSync(cmd, args, { input });
+  const p = spawnSync(cmd, args, { input });
   return !p.error;
 };
 
+const pause = (t) => new Promise((resolve) => setTimeout(resolve, t));
+
 function wlCopy(input) {
-  return executeSync('wl-scopy', ['-o'], input);
+  return executeSync('wl-copy', ['-o'], input);
 }
 
 function xSelCopy(input) {
-  return executeSync('xusel', ['--clipboard', '--input'], input);
+  return executeSync('xsel', ['--clipboard', '--input'], input);
 }
 
-function xClipCopy(input) {
-  return executeSync('xclip', ['-loops', '1', '-selection', 'clipboard']);
+async function xClipCopy(input) {
+  const p = exec(`echo "${input}" | xclip -selection clipboard -loops 1`);
+}
+
+function pbcopy(input) {
+  return executeSync('pbcopy', [], input);
+}
+
+function clipCopy() {
+  const s = require('child_process').spawn('clip');
+  s.on('spawn', (foo) => {
+    s.stdin.end(data);
+    logger.info('copied to clipboard (windows: clip)');
+  });
+  s.on('error', () => {
+    logger.warn('windows: clip failed');
+  });
 }
 
 function linuxCopy(input) {
@@ -31,20 +51,6 @@ function linuxCopy(input) {
   }
 }
 
-function pbcopy(input) {
-  const r = require('child_process').spawn('pbcopy');
-  r.on('spawn', () => {
-    r.stdin.write(data);
-    r.stdin.end();
-    logger.info('copied to clipboard (darwin: pbcopy)');
-  });
-  r.on('error', () => {
-    debug('darwin: pbcopy failed');
-  });
-}
-
-function clipCopy() {}
-
 function copy(input) {
   // TODO: Do better
   const { platform } = process;
@@ -53,26 +59,14 @@ function copy(input) {
       linuxCopy(input);
       break;
     case 'darwin':
-      const r = require('child_process').spawn('pbcopy');
-      r.on('spawn', () => {
-        r.stdin.write(data);
-        r.stdin.end();
+      if (pbcopy(input)) {
         logger.info('copied to clipboard (darwin: pbcopy)');
-      });
-      r.on('error', () => {
-        debug('darwin: pbcopy failed');
-      });
+      } else {
+        logger.warn('could not copy to clipboard');
+      }
       break;
     case 'windows':
-      const s = require('child_process').spawn('clip');
-      s.on('spawn', () => {
-        s.stdin.write(data);
-        s.stdin.end();
-        logger.info('copied to clipboard (windows: clip)');
-      });
-      s.on('error', () => {
-        debug('windows: clip failed');
-      });
+      clipCopy(input);
       break;
     default:
       debug(`unsupported platform ${platform}`);

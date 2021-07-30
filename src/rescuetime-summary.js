@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 const { Command } = require('commander');
 const moment = require('moment');
-const index = require('./index');
-const packageInfo = require('./package.json');
+const index = require('../index');
+const packageInfo = require('../package.json');
 
 const program = new Command();
 program.version = packageInfo.version;
